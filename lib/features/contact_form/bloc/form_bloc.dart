@@ -1,12 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:azodha_task/models/contact_model.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
 
@@ -25,6 +29,18 @@ class FormBloc extends Bloc<FormEvent, FormState> {
     );
     on<SubmitForm>(submitForm);
     on<FormUpdate>(updateForm);
+    on<ImageFromURLLoaded>(
+      (event, emit) => emit(
+        ImageURLLoadedState(event.imageURL),
+      ),
+    );
+    on<EditFormImageFromFileLoaded>((event, emit) => emit(
+          GetImageFromFileState(event.base64String),
+        ));
+
+    on<EditFormImageFromCameraLoaded>((event, emit) => emit(
+          GetImageFromCameraState(event.firebaseURL),
+        ));
   }
 
   String generateRandomId() {
@@ -35,15 +51,44 @@ class FormBloc extends Bloc<FormEvent, FormState> {
   }
 
   FutureOr<void> getImageFromFileState(
-      ImageFromFile event, Emitter<FormState> emit) {
+      ImageFromFile event, Emitter<FormState> emit) async {
     log('getting image from file');
-    emit(GetImageFromFileState());
+    emit(FormImageUploadLoadingState());
+    final ImagePicker _picker = ImagePicker();
+    XFile? image =
+        await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
+    String base64String = '';
+    if (image != null) {
+      Uint8List imageBytes = await image.readAsBytes();
+      base64String = base64UrlEncode(imageBytes);
+    }
+    emit(GetImageFromFileState(base64String));
   }
 
   FutureOr<void> getImageFromCameraState(
-      ImageFromCamera event, Emitter<FormState> emit) {
+      ImageFromCamera event, Emitter<FormState> emit) async {
     log('getting image from camera');
-    emit(GetImageFromCameraState());
+    emit(FormImageUploadLoadingState());
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    String downloadUrl = '';
+    if (image != null) {
+      File file = File(image.path);
+      firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
+          .ref('uploads/${DateTime.now().millisecondsSinceEpoch}.png');
+      firebase_storage.UploadTask uploadTask = ref.putFile(file);
+      try {
+        await uploadTask;
+        downloadUrl = await ref.getDownloadURL();
+        log('Firebase URL: $downloadUrl');
+      } on firebase_storage.FirebaseException catch (e) {
+        print(e.message);
+      }
+    } else {
+      downloadUrl = '';
+      log('No image selected.');
+    }
+    emit(GetImageFromCameraState(downloadUrl));
   }
 
   FutureOr<void> getImageFromURLState(
@@ -61,11 +106,9 @@ class FormBloc extends Bloc<FormEvent, FormState> {
       'email': event.email,
       'phone': event.phone,
       'address': event.address,
-      // 'image': event.image,
+      'image': event.image,
       'imageType': event.imageType,
     };
-
-    log('contactDetails = ${contactDetails.toString()}');
 
     try {
       if (event.name.isEmpty) {
@@ -78,7 +121,7 @@ class FormBloc extends Bloc<FormEvent, FormState> {
       emit(FormSubmitSuccess(contactDetails['name']!));
     } catch (e) {
       log(e.toString());
-      emit(FormErrorState(e.toString()));
+      emit(FormErrorState('Something went wrong...'));
     }
   }
 
@@ -94,8 +137,6 @@ class FormBloc extends Bloc<FormEvent, FormState> {
       'imageType': event.imageType,
     };
 
-    log('image len = ${event.image.length}');
-
     try {
       if (event.name.isEmpty) {
         throw 'Please enter your name';
@@ -107,7 +148,7 @@ class FormBloc extends Bloc<FormEvent, FormState> {
       emit(FormSubmitSuccess(contactDetails['name']!));
     } catch (e) {
       log(e.toString());
-      emit(FormErrorState(e.toString()));
+      emit(FormErrorState('Something went wrong...'));
     }
   }
 }

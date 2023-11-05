@@ -17,12 +17,28 @@ final class FormErrorState extends FormState {
   FormErrorState(this.message);
 }
 
-// Action States
-final class GetImageFromFileState extends FormActionState {}
+final class FormImageUploadLoadingState extends FormState {}
 
-final class GetImageFromCameraState extends FormActionState {}
+// Action States
+final class GetImageFromFileState extends FormActionState {
+  final String base64String;
+
+  GetImageFromFileState(this.base64String);
+}
+
+final class GetImageFromCameraState extends FormActionState {
+  final String firebaseURL;
+
+  GetImageFromCameraState(this.firebaseURL);
+}
 
 final class GetImageFromURLState extends FormActionState {}
+
+final class ImageURLLoadedState extends FormActionState {
+  final String imageURL;
+
+  ImageURLLoadedState(this.imageURL);
+}
 
 final class FormSubmit extends FormActionState {}
 

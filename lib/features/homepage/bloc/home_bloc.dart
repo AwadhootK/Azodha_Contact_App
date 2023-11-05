@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:azodha_task/models/contact_model.dart';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 

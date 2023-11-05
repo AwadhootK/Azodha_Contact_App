@@ -35,7 +35,7 @@ class ContactDetailsBloc
       log('documents successfully loaded');
       emit(ContactDetailsLoadState(contacts));
     } catch (e) {
-      emit(ContactDetailsErrorState(e.toString()));
+      emit(ContactDetailsErrorState('Something went wrong...'));
     }
   }
 
@@ -47,7 +47,7 @@ class ContactDetailsBloc
       log('document successfully deleted');
       emit(ContactDeleteSuccessState(event.documentID));
     } catch (e) {
-      emit(ContactDetailsErrorState(e.toString()));
+      emit(ContactDetailsErrorState('Something went wrong...'));
     }
   }
 }

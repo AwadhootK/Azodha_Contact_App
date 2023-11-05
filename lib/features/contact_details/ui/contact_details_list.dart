@@ -75,7 +75,6 @@ class ContactDetailsList extends StatelessWidget {
         ),
       ),
       body: BlocConsumer<ContactDetailsBloc, ContactDetailsState>(
-        // listenWhen: (previous, current) => current is ContactDetailsActionState,
         listener: (context, state) {
           log('in listener state: $state');
           if (state is ContactDetailsInitial) {
@@ -157,16 +156,13 @@ class ContactDetailsList extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(snackBar);
           }
         },
-        // buildWhen: (previous, current) => current is! ContactDetailsActionState,
         builder: (context, state) {
-          //! figure out why this isn't working in listener
           if (state is ContactDetailsInitial) {
             context.read<ContactDetailsBloc>().add(
                   ContactDetailsLoadEvent(),
                 );
             return Container();
-          }
-          if (state is ContactDetailsLoadState) {
+          } else if (state is ContactDetailsLoadState) {
             if (state.contacts.isEmpty) {
               return const Center(
                 child: Text('No Contacts'),

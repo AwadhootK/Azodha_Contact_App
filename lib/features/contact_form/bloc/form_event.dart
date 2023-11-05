@@ -14,6 +14,24 @@ class ImageFromCamera extends FormEvent {}
 
 class ImageFromURL extends FormEvent {}
 
+class ImageFromURLLoaded extends FormEvent {
+  final String imageURL;
+
+  ImageFromURLLoaded(this.imageURL);
+}
+
+class EditFormImageFromFileLoaded extends FormEvent {
+  final String base64String;
+
+  EditFormImageFromFileLoaded(this.base64String);
+}
+
+class EditFormImageFromCameraLoaded extends FormEvent {
+  final String firebaseURL;
+
+  EditFormImageFromCameraLoaded(this.firebaseURL);
+}
+
 class SubmitForm extends FormEvent {
   final String name;
   final String email;
