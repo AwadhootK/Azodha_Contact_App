@@ -15,6 +15,29 @@ class ContactHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
+    final Decoration customDecoration = BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          Colors.black.withOpacity(0.6),
+          Colors.black.withOpacity(0.4),
+          Colors.black.withOpacity(0.4),
+        ],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+      ),
+      borderRadius: BorderRadius.circular(24),
+      border: Border.all(
+        color: Theme.of(context).colorScheme.scrim,
+        width: 0.7,
+      ),
+      boxShadow: [
+        BoxShadow(
+          blurRadius: 1.0,
+          spreadRadius: 2.0,
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+        ),
+      ],
+    );
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
@@ -89,7 +112,7 @@ class ContactHomePage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(height: h * 0.08),
+                  SizedBox(height: h * 0.05),
                   InkWell(
                     onTap: () {
                       context.read<HomeBloc>().add(
@@ -104,7 +127,7 @@ class ContactHomePage extends StatelessWidget {
                           'Add Contact',
                           style: TextStyle(
                               color: Colors.white,
-                              fontSize: h * 0.03,
+                              fontSize: 24,
                               fontWeight: FontWeight.bold),
                         ),
                       ),

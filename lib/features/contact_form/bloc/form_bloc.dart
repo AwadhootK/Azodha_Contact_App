@@ -61,7 +61,7 @@ class FormBloc extends Bloc<FormEvent, FormState> {
       'email': event.email,
       'phone': event.phone,
       'address': event.address,
-      'image': event.image,
+      // 'image': event.image,
       'imageType': event.imageType,
     };
 

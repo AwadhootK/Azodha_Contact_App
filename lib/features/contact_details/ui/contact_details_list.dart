@@ -20,7 +20,7 @@ class ContactDetailsList extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: Text('Contact List'),
+        title: Text('Contact Cards'),
         centerTitle: true,
         actions: [
           Padding(
@@ -61,6 +61,8 @@ class ContactDetailsList extends StatelessWidget {
           ),
         ],
       ),
+      floatingActionButtonLocation:
+          FloatingActionButtonLocation.miniCenterFloat,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           context.read<ContactDetailsBloc>().add(
@@ -170,9 +172,14 @@ class ContactDetailsList extends StatelessWidget {
                 child: Text('No Contacts'),
               );
             }
-            return ContactDetailsListTile(
-              contacts: state.contacts,
-              contactDetailsBloc: context.read<ContactDetailsBloc>(),
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: h * 0.08,
+              ),
+              child: ContactDetailsListTile(
+                contacts: state.contacts,
+                contactDetailsBloc: context.read<ContactDetailsBloc>(),
+              ),
             );
           } else if (state is ContactDetailsErrorState) {
             return Center(

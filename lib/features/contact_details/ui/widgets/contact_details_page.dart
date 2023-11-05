@@ -44,26 +44,26 @@ class ContactDetailsPage extends StatelessWidget {
               },
             );
           }
-        case 1:
-          // camera image
-          {
-            return Image.network(
-              contact.image ?? '',
-              errorBuilder: (context, _, __) {
-                return Image.asset('assets/images/invalid_placeholder.png');
-              },
-            );
-          }
-        case 2:
-          // network image
-          {
-            return Image.network(
-              contact.image ?? '',
-              errorBuilder: (context, _, __) {
-                return Image.asset('assets/images/invalid_placeholder.png');
-              },
-            );
-          }
+        // case 1:
+        //   // camera image
+        //   {
+        //     return Image.network(
+        //       contact.image ?? '',
+        //       errorBuilder: (context, _, __) {
+        //         return Image.asset('assets/images/invalid_placeholder.png');
+        //       },
+        //     );
+        //   }
+        // case 2:
+        //   // network image
+        //   {
+        //     return Image.network(
+        //       contact.image ?? '',
+        //       errorBuilder: (context, _, __) {
+        //         return Image.asset('assets/images/invalid_placeholder.png');
+        //       },
+        //     );
+        //   }
         default:
           {
             return Image.asset(

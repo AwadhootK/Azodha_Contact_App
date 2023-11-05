@@ -62,10 +62,11 @@ class _ContactFormState extends State<ContactForm> {
 
   Future<String?> pickImageAndConvertToBase64(ImageSource source) async {
     final ImagePicker _picker = ImagePicker();
-    XFile? image = await _picker.pickImage(source: source);
+    XFile? image = await _picker.pickImage(source: source, imageQuality: 50);
     if (image != null) {
       Uint8List imageBytes = await image.readAsBytes();
       String base64String = base64UrlEncode(imageBytes);
+      log('base64String = ${base64String.length}');
       return base64String;
     }
     return null;
