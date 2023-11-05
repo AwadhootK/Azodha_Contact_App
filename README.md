@@ -12,7 +12,7 @@ The application boasts a suite of features aimed at enhancing the user experienc
 - **Error Handling & Validity Checks**: Guarantees data correctness through comprehensive error handling and form validation.
 - **Custom Animations**: Provides smooth, engaging animations.
 
-## Core Functionality
+## Core Functionalities
 
 ### 1. Contact Form:
 
