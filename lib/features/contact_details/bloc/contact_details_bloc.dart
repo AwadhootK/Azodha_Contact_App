@@ -16,6 +16,11 @@ class ContactDetailsBloc
   ContactDetailsBloc() : super(ContactDetailsInitial()) {
     on<ContactDetailsLoadEvent>(loadContactDetails);
     on<ContactDetailsDelete>(deleteContact);
+    on<NavigateToContactDetails>(
+      (event, emit) => emit(
+        NavigateToContactDetailsState(event.contact),
+      ),
+    );
   }
 
   FutureOr<void> loadContactDetails(

@@ -3,7 +3,10 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:azodha_task/constants/customDecoration.dart';
 import 'package:azodha_task/features/contact_form/bloc/form_bloc.dart' as fb;
+import 'package:azodha_task/features/contact_form/ui/widgets/customTextButton.dart';
+import 'package:azodha_task/features/contact_form/ui/widgets/customTextField.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:azodha_task/models/contact_model.dart';
 import 'package:flutter/material.dart';
@@ -70,7 +73,7 @@ class _ContactFormState extends State<ContactForm> {
 
   Future<void> uploadPng() async {
     final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
     if (image != null) {
       File file = File(image.path);
       firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
@@ -185,8 +188,10 @@ class _ContactFormState extends State<ContactForm> {
     final w = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: Text('${widget.isEditing ? 'Edit' : ''} Contact Form'),
+        centerTitle: true,
+        title: Text('${widget.isEditing ? 'Edit' : 'New'} Contact Form'),
       ),
       body: BlocConsumer<fb.FormBloc, fb.FormState>(
         listener: (context, state) {
@@ -217,7 +222,6 @@ class _ContactFormState extends State<ContactForm> {
               child: CircularProgressIndicator(),
             );
           }
-
           return Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -225,11 +229,12 @@ class _ContactFormState extends State<ContactForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  TextFormField(
+                  CustomTextField(
                     controller: _nameController,
+                    prefixIcon: Icons.person,
                     keyboardType: TextInputType.name,
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(labelText: 'Name'),
+                    labelText: 'Name',
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your name';
@@ -237,11 +242,12 @@ class _ContactFormState extends State<ContactForm> {
                       return null;
                     },
                   ),
-                  TextFormField(
+                  CustomTextField(
                     controller: _emailController,
+                    prefixIcon: Icons.email,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(labelText: 'Email'),
+                    labelText: 'Email',
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email';
@@ -249,11 +255,12 @@ class _ContactFormState extends State<ContactForm> {
                       return null;
                     },
                   ),
-                  TextFormField(
+                  CustomTextField(
                     controller: _phoneController,
+                    prefixIcon: Icons.phone,
                     keyboardType: TextInputType.phone,
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(labelText: 'Phone'),
+                    labelText: 'Phone',
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your phone number';
@@ -261,11 +268,12 @@ class _ContactFormState extends State<ContactForm> {
                       return null;
                     },
                   ),
-                  TextFormField(
+                  CustomTextField(
                     controller: _addressController,
                     maxLines: 3,
+                    prefixIcon: Icons.location_on,
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(labelText: 'Address'),
+                    labelText: 'Address',
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your address';
@@ -273,26 +281,37 @@ class _ContactFormState extends State<ContactForm> {
                       return null;
                     },
                   ),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.lightBlue.shade100,
-                      side: const BorderSide(color: Colors.black),
-                    ),
-                    onPressed: () {
+                  Divider(
+                    thickness: 1,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  InkWell(
+                    onTap: () {
                       context.read<fb.FormBloc>().add(fb.ResetImage());
                     },
-                    child: const Text('Choose Image Source'),
+                    child: Text(
+                      'Choose Image Source',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.cyan.shade900,
+                        fontWeight: FontWeight.bold,
+                        fontSize: h * 0.02,
+                      ),
+                    ),
                   ),
+                  Divider(
+                    thickness: 1,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  SizedBox(height: h * 0.02),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          backgroundColor: _imageType == 0
-                              ? Colors.lightGreen.shade100
-                              : Colors.lightBlue.shade100,
-                          side: const BorderSide(color: Colors.black),
-                        ),
+                      CustomTextButton(
+                        imageController: _imageController,
+                        imageType: _imageType,
+                        imageNumber: 0,
+                        prefixIcon: Icons.file_copy,
                         onPressed: () async {
                           setState(() {
                             _imageType = 0;
@@ -301,15 +320,13 @@ class _ContactFormState extends State<ContactForm> {
                           await uploadImage(context);
                           context.read<fb.FormBloc>().add(fb.ImageFromFile());
                         },
-                        child: const Text('Gallery'),
+                        text: 'Gallery',
                       ),
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          backgroundColor: _imageType == 1
-                              ? Colors.lightGreen.shade100
-                              : Colors.lightBlue.shade100,
-                          side: const BorderSide(color: Colors.black),
-                        ),
+                      CustomTextButton(
+                        imageController: _imageController,
+                        imageType: _imageType,
+                        imageNumber: 1,
+                        prefixIcon: Icons.camera,
                         onPressed: () async {
                           setState(() {
                             _imageType = 1;
@@ -323,15 +340,13 @@ class _ContactFormState extends State<ContactForm> {
                           });
                           context.read<fb.FormBloc>().add(fb.ImageFromCamera());
                         },
-                        child: const Text('Camera'),
+                        text: 'Camera',
                       ),
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          backgroundColor: _imageType == 2
-                              ? Colors.lightGreen.shade100
-                              : Colors.lightBlue.shade100,
-                          side: const BorderSide(color: Colors.black),
-                        ),
+                      CustomTextButton(
+                        imageController: _imageController,
+                        prefixIcon: Icons.image,
+                        imageType: _imageType,
+                        imageNumber: 2,
                         onPressed: () {
                           setState(() {
                             _imageType = 2;
@@ -339,7 +354,7 @@ class _ContactFormState extends State<ContactForm> {
                           });
                           context.read<fb.FormBloc>().add(fb.ImageFromURL());
                         },
-                        child: const Text('URL'),
+                        text: 'URL',
                       ),
                     ],
                   ),
@@ -347,13 +362,19 @@ class _ContactFormState extends State<ContactForm> {
                       state is! fb.GetImageFromFileState &&
                       (state is fb.GetImageFromURLState ||
                           _imageType == 2 && state is fb.FormInitial))
-                    TextFormField(
+                    SizedBox(height: h * 0.02),
+                  if (state is! fb.GetImageFromCameraState &&
+                      state is! fb.GetImageFromFileState &&
+                      (state is fb.GetImageFromURLState ||
+                          _imageType == 2 && state is fb.FormInitial))
+                    CustomTextField(
                       controller: _imageController,
+                      prefixIcon: Icons.image,
                       textInputAction: TextInputAction.done,
                       onEditingComplete: () {
                         setState(() {});
                       },
-                      decoration: const InputDecoration(labelText: 'Image URL'),
+                      labelText: 'Image URL',
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your image URL';
@@ -361,7 +382,19 @@ class _ContactFormState extends State<ContactForm> {
                         return null;
                       },
                     ),
+                  SizedBox(height: h * 0.03),
                   AnimatedContainer(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.2),
+                    ),
                     padding: EdgeInsets.all(h * 0.02),
                     height: _imageController.text.isEmpty || _imageType == -1
                         ? 0
@@ -372,8 +405,10 @@ class _ContactFormState extends State<ContactForm> {
                     duration: const Duration(milliseconds: 250),
                     child: getImageWidget(),
                   ),
-                  ElevatedButton(
-                    onPressed: () {
+                  SizedBox(height: h * 0.03),
+                  InkWell(
+                    splashColor: Colors.cyan.shade900,
+                    onTap: () {
                       if (_formKey.currentState!.validate()) {
                         if (!widget.isEditing) {
                           context.read<fb.FormBloc>().add(fb.SubmitForm(
@@ -399,7 +434,27 @@ class _ContactFormState extends State<ContactForm> {
                         }
                       }
                     },
-                    child: const Text('Submit'),
+                    child: Container(
+                      height: h * 0.08,
+                      decoration: BoxDecoration(
+                        color: Colors.cyan.shade900,
+                        border: Border.all(
+                          color: Colors.cyan.shade200,
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(h * 0.02),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Submit',
+                          style: TextStyle(
+                            color: Colors.cyan.shade50,
+                            fontWeight: FontWeight.bold,
+                            fontSize: h * 0.023,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                   SizedBox(height: h * 0.1),
                 ],

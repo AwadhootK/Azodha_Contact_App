@@ -52,10 +52,9 @@ class FormBloc extends Bloc<FormEvent, FormState> {
     emit(GetImageFromURLState());
   }
 
-
   FutureOr<void> submitForm(SubmitForm event, Emitter<FormState> emit) async {
     emit(FormLoadingState());
-    log('updating form');
+    log('submitting form');
     Map<String, dynamic> contactDetails = {
       'documentID': generateRandomId(),
       'name': event.name,
@@ -65,6 +64,8 @@ class FormBloc extends Bloc<FormEvent, FormState> {
       'image': event.image,
       'imageType': event.imageType,
     };
+
+    log('contactDetails = ${contactDetails.toString()}');
 
     try {
       if (event.name.isEmpty) {

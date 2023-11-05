@@ -82,33 +82,47 @@ class ContactDetailsListTile extends StatelessWidget {
     final h = MediaQuery.of(context).size.height;
     final w = MediaQuery.of(context).size.width;
 
-    return ListView.separated(
+    return ListView.builder(
       itemCount: contacts.length,
-      separatorBuilder: (context, index) => Divider(color: Colors.grey[400]),
       itemBuilder: (context, index) {
-        return Card(
-          color: Colors.cyan[300],
-          margin:
-              EdgeInsets.symmetric(vertical: h * 0.02, horizontal: w * 0.05),
-          child: InkWell(
-            onTap: () {
-              contactDetailsBloc.add(
-                NavigateToContactDetails(contacts[index]),
-              );
-            },
+        return InkWell(
+          splashColor: Colors.cyan.shade100.withOpacity(0.5),
+          onTap: () {
+            contactDetailsBloc.add(
+              NavigateToContactDetails(contacts[index]),
+            );
+          },
+          child: Card(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15.0),
+            ),
+            shadowColor: Colors.grey[400],
+            elevation: 10,
+            margin:
+                EdgeInsets.symmetric(vertical: h * 0.02, horizontal: w * 0.05),
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
                 children: [
                   ListTile(
+                    onTap: null,
                     leading: Container(
                       height: h * 0.1,
                       width: h * 0.07,
                       decoration: BoxDecoration(
-                        color: Colors.blue[900],
+                        color: Colors.transparent,
                         image:
                             DecorationImage(image: getImageWidget(index).image),
                         shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.cyan.shade100.withOpacity(0.5),
+                            spreadRadius: 7,
+                            blurRadius: 7,
+                            offset: Offset(0, 0),
+                          ),
+                        ],
                       ),
                     ),
                     title: SizedBox(
@@ -118,30 +132,49 @@ class ContactDetailsListTile extends StatelessWidget {
                         child: Text(
                           (contacts[index].name ?? 'No Name').padRight(25),
                           style: TextStyle(
-                              fontSize: h * 0.025, fontWeight: FontWeight.bold),
+                            color: Theme.of(context).colorScheme.background,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(contacts[index].phone ?? 'No Phone'),
-                        SizedBox(
-                          width: w * 0.4,
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: Text((contacts[index].email ?? 'No Email')
-                                .padRight(25)),
+                    subtitle: Padding(
+                      padding: EdgeInsets.all(h * 0.01),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            contacts[index].phone ?? 'No Phone',
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                      ],
+                          SizedBox(
+                            width: w * 0.4,
+                            child: FittedBox(
+                              fit: BoxFit.contain,
+                              child: Text(
+                                (contacts[index].email ?? 'No Email')
+                                    .padRight(25),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       IconButton(
-                        icon: Icon(Icons.edit, color: Colors.blue[900]!),
+                        icon: Icon(
+                          Icons.edit,
+                          color: Theme.of(context).colorScheme.background,
+                        ),
                         onPressed: () {
                           Navigator.of(context)
                               .push<bool>(
@@ -163,7 +196,10 @@ class ContactDetailsListTile extends StatelessWidget {
                         },
                       ),
                       IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red.shade600),
+                        icon: Icon(
+                          Icons.delete,
+                          color: Theme.of(context).colorScheme.background,
+                        ),
                         onPressed: () {
                           // Confirm deletion dialog or directly delete
                           if (contacts[index].name != null &&

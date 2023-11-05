@@ -1,6 +1,8 @@
 import 'dart:developer';
 
+import 'package:azodha_task/animations/pageRouteAnimation.dart';
 import 'package:azodha_task/features/contact_details/bloc/contact_details_bloc.dart';
+import 'package:azodha_task/features/contact_details/ui/widgets/contact_details_page.dart';
 import 'package:azodha_task/features/contact_details/ui/widgets/contact_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,24 +15,49 @@ class ContactDetailsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final h = MediaQuery.of(context).size.height;
+
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
+        title: Text('Contact List'),
+        centerTitle: true,
         actions: [
-          IconButton(
-            onPressed: () async {
-              await Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => BlocProvider(
-                    create: (context) => FormBloc(),
-                    child: ContactForm(),
-                  ),
-                ),
-              );
-              context.read<ContactDetailsBloc>().add(
-                    ContactDetailsLoadEvent(),
+          Padding(
+            padding: EdgeInsets.all(h * 0.005),
+            child: Card(
+              elevation: 5,
+              shadowColor: Theme.of(context).colorScheme.background,
+              shape: const CircleBorder(),
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: IconButton(
+                onPressed: () async {
+                  await Navigator.of(context).push(
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          BlocProvider(
+                        create: (context) => FormBloc(),
+                        child: ContactForm(),
+                      ),
+                      transitionDuration: const Duration(milliseconds: 250),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) =>
+                              CustomPageRouteAnimation(
+                        child: child,
+                        animation: animation,
+                      ),
+                    ),
                   );
-            },
-            icon: const Icon(Icons.add),
+                  context.read<ContactDetailsBloc>().add(
+                        ContactDetailsLoadEvent(),
+                      );
+                },
+                icon: Icon(
+                  Icons.add,
+                  color: Theme.of(context).colorScheme.background,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -40,7 +67,10 @@ class ContactDetailsList extends StatelessWidget {
                 ContactDetailsLoadEvent(),
               );
         },
-        child: const Icon(Icons.refresh),
+        child: Icon(
+          Icons.refresh,
+          color: Theme.of(context).colorScheme.background,
+        ),
       ),
       body: BlocConsumer<ContactDetailsBloc, ContactDetailsState>(
         // listenWhen: (previous, current) => current is ContactDetailsActionState,
@@ -51,29 +81,56 @@ class ContactDetailsList extends StatelessWidget {
                   ContactDetailsLoadEvent(),
                 );
           } else if (state is NavigateToContactDetailsState) {
+            Navigator.of(context)
+                .push(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        ContactDetailsPage(
+                      contact: state.contact,
+                    ),
+                    transitionDuration: const Duration(milliseconds: 250),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) =>
+                            CustomPageRouteAnimation(
+                      child: child,
+                      animation: animation,
+                    ),
+                  ),
+                )
+                .then((value) => context.read<ContactDetailsBloc>().add(
+                      ContactDetailsLoadEvent(),
+                    ));
+          } else if (state is ContactDetailsUpdateState) {
             Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => BlocProvider(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    BlocProvider(
                   create: (context) => ContactDetailsBloc(),
                   child: const ContactDetailsList(),
                 ),
-              ),
-            );
-          } else if (state is ContactDetailsUpdateState) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => BlocProvider(
-                  create: (context) => ContactDetailsBloc(),
-                  child: const ContactDetailsList(),
+                transitionDuration: const Duration(milliseconds: 250),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) =>
+                        CustomPageRouteAnimation(
+                  child: child,
+                  animation: animation,
                 ),
               ),
             );
           } else if (state is ContactDetailsDeleteState) {
             Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => BlocProvider(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    BlocProvider(
                   create: (context) => ContactDetailsBloc(),
                   child: const ContactDetailsList(),
+                ),
+                transitionDuration: const Duration(milliseconds: 250),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) =>
+                        CustomPageRouteAnimation(
+                  child: child,
+                  animation: animation,
                 ),
               ),
             );
@@ -88,16 +145,24 @@ class ContactDetailsList extends StatelessWidget {
             );
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
             ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          } else if (state is ContactDetailsErrorState) {
+            SnackBar snackBar = SnackBar(
+              content: Text(state.message),
+              duration: const Duration(seconds: 2),
+              backgroundColor: Colors.red,
+            );
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(snackBar);
           }
         },
         // buildWhen: (previous, current) => current is! ContactDetailsActionState,
         builder: (context, state) {
-          log('in builder state: $state');
           //! figure out why this isn't working in listener
           if (state is ContactDetailsInitial) {
             context.read<ContactDetailsBloc>().add(
                   ContactDetailsLoadEvent(),
                 );
+            return Container();
           }
           if (state is ContactDetailsLoadState) {
             if (state.contacts.isEmpty) {
