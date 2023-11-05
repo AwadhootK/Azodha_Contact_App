@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "44810574324",
+    "project_id": "azodhacontactapp",
+    "storage_bucket": "azodhacontactapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:44810574324:android:4b08b9a9557d95fe8d41a1",
+        "android_client_info": {
+          "package_name": "com.example.azodha_task"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBT9rb61mjSwb-oouJOo_OsPfEmMCz_JwM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
