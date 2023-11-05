@@ -4,18 +4,26 @@ import 'package:azodha_task/features/contact_details/bloc/contact_details_bloc.d
 import 'package:azodha_task/features/contact_form/bloc/form_bloc.dart';
 import 'package:azodha_task/features/contact_form/ui/contact_form.dart';
 import 'package:azodha_task/models/contact_model.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class ContactDetailsListTile extends StatelessWidget {
   final ContactDetailsBloc contactDetailsBloc;
   final List<Contact> contacts;
 
-  const ContactDetailsListTile({
+  ContactDetailsListTile({
     required this.contacts,
     required this.contactDetailsBloc,
     super.key,
   });
+
+  final cacheManager = CacheManager(Config(
+    'my_custom_cache_key',
+    stalePeriod: const Duration(days: 7),
+    maxNrOfCacheObjects: 100,
+  ));
 
   Image getImageWidget(int index) {
     if (contacts[index].image == null || contacts[index].image!.isEmpty) {
@@ -120,8 +128,10 @@ class ContactDetailsListTile extends StatelessWidget {
                           color: Colors.white60,
                           width: 0.75,
                         ),
-                        image:
-                            DecorationImage(image: getImageWidget(index).image),
+                        image: contacts[index].imageType == 0
+                            ? DecorationImage(
+                                image: getImageWidget(index).image)
+                            : null,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
@@ -132,6 +142,27 @@ class ContactDetailsListTile extends StatelessWidget {
                           ),
                         ],
                       ),
+                      child: contacts[index].imageType != 0
+                          ? ClipOval(
+                              child: CachedNetworkImage(
+                                imageUrl: contacts[index].image ?? '',
+                                placeholder: (context, url) {
+                                  return Image.asset(
+                                      'assets/images/placeholder.png');
+                                },
+                                errorWidget: (context, url, error) {
+                                  return Image.asset(
+                                      'assets/images/placeholder.png');
+                                },
+                                cacheManager: cacheManager,
+                                fadeInDuration: const Duration(
+                                  milliseconds: 100,
+                                ),
+                                fit: BoxFit.fitWidth,
+                                key: UniqueKey(),
+                              ),
+                            )
+                          : null,
                     ),
                     title: SizedBox(
                       width: w * 0.7,

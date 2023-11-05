@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:maps_launcher/maps_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../models/contact_model.dart';
@@ -9,10 +11,16 @@ import '../../../../models/contact_model.dart';
 class ContactDetailsPage extends StatelessWidget {
   final Contact contact;
 
-  const ContactDetailsPage({
+  ContactDetailsPage({
     super.key,
     required this.contact,
   });
+
+  final cacheManager = CacheManager(Config(
+    'my_custom_cache_key',
+    stalePeriod: const Duration(days: 7),
+    maxNrOfCacheObjects: 100,
+  ));
 
   Image getImageWidget() {
     if (contact.image == null || contact.image!.isEmpty) {
@@ -207,21 +215,43 @@ class ContactDetailsPage extends StatelessWidget {
           children: [
             SizedBox(height: padding),
             Container(
-              height: screenSize.height * 0.3,
+              height: screenSize.height * 0.35,
+              width: screenSize.width * 0.65,
               decoration: BoxDecoration(
-                image: DecorationImage(image: getImageWidget().image),
+                color: Colors.transparent,
+                border: Border.all(
+                  color: Colors.white60,
+                  width: 0.75,
+                ),
+                image: contact.imageType == 0
+                    ? DecorationImage(image: getImageWidget().image)
+                    : null,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.cyan.shade900.withOpacity(0.4),
-                    spreadRadius: 10,
-                    blurRadius: 50,
+                    color: Colors.cyan.shade100.withOpacity(0.5),
+                    spreadRadius: 7,
+                    blurRadius: 7,
                     offset: Offset(0, 0),
                   ),
                 ],
               ),
-              // radius: screenSize.width * 0.3,
-              // backgroundImage: getImageWidget().image,
-              // backgroundColor: themeData.colorScheme.surface,
+              child: contact.imageType != 0
+                  ? CachedNetworkImage(
+                      imageUrl: contact.image ?? '',
+                      placeholder: (context, url) {
+                        return Image.asset('assets/images/placeholder.png');
+                      },
+                      errorWidget: (context, url, error) {
+                        return Image.asset('assets/images/placeholder.png');
+                      },
+                      cacheManager: cacheManager,
+                      fadeInDuration: const Duration(
+                        milliseconds: 100,
+                      ),
+                      fit: BoxFit.fitWidth,
+                      key: UniqueKey(),
+                    )
+                  : null,
             ),
             SizedBox(height: padding),
             Card(
