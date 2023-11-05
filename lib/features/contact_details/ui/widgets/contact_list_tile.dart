@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:typed_data';
 import 'package:azodha_task/features/contact_details/bloc/contact_details_bloc.dart';
 import 'package:azodha_task/features/contact_form/bloc/form_bloc.dart';
@@ -93,16 +92,21 @@ class ContactDetailsListTile extends StatelessWidget {
             );
           },
           child: Card(
-            color: Theme.of(context).colorScheme.primaryContainer,
+            color:
+                Theme.of(context).colorScheme.primaryContainer.withOpacity(0.8),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15.0),
+              side: BorderSide(
+                color: Colors.cyan.shade900,
+                width: 2,
+              ),
             ),
             shadowColor: Colors.grey[400],
             elevation: 10,
             margin:
                 EdgeInsets.symmetric(vertical: h * 0.02, horizontal: w * 0.05),
             child: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: EdgeInsets.all(h * 0.019),
               child: Column(
                 children: [
                   ListTile(
@@ -112,6 +116,10 @@ class ContactDetailsListTile extends StatelessWidget {
                       width: h * 0.07,
                       decoration: BoxDecoration(
                         color: Colors.transparent,
+                        border: Border.all(
+                          color: Colors.white60,
+                          width: 0.75,
+                        ),
                         image:
                             DecorationImage(image: getImageWidget(index).image),
                         shape: BoxShape.circle,

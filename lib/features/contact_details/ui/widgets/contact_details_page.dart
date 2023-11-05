@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:maps_launcher/maps_launcher.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../models/contact_model.dart';
 
 class ContactDetailsPage extends StatelessWidget {
@@ -70,6 +73,101 @@ class ContactDetailsPage extends StatelessWidget {
     }
   }
 
+  Future<void> _makePhoneCall(BuildContext context, String phoneNumber) async {
+    if (phoneNumber.isEmpty || phoneNumber.length != 10) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Invalid Phone Number'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: '+91$phoneNumber',
+    );
+
+    if (!(await launchUrl(launchUri))) {
+      throw "Error occured trying to call that number.";
+    }
+  }
+
+  Future<void> _sendSMS(BuildContext context, String phoneNumber) async {
+    if (phoneNumber.isEmpty || phoneNumber.length != 10) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Invalid Phone Number'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    final Uri launchUri = Uri(
+      scheme: 'sms',
+      path: '+91$phoneNumber',
+    );
+
+    if (!(await launchUrl(launchUri))) {
+      throw "Error occured trying to call that number.";
+    }
+  }
+
+  Future<void> _sendEmail(BuildContext context, String email) async {
+    if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Invalid Phone Number'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    final Uri launchUri = Uri(
+      scheme: 'mailto',
+      path: email,
+    );
+
+    if (!(await launchUrl(launchUri))) {
+      throw "Error occured trying to call that number.";
+    }
+  }
+
+  Future<void> openMapWithAddress(BuildContext context, String query) async {
+    if (query.isEmpty) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Invalid Address'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    if (!(await MapsLauncher.launchQuery(query))) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could Not Launch Address. Please Type Manually'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      Future.delayed(const Duration(seconds: 2)).then((value) {
+        query = '';
+        launchUrl(
+          Uri(
+            scheme: 'https',
+            path: 'www.google.com/maps/search/?api=1&query=$query',
+          ),
+        );
+      });
+      return;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Theme data for consistent styling
@@ -108,10 +206,22 @@ class ContactDetailsPage extends StatelessWidget {
         child: Column(
           children: [
             SizedBox(height: padding),
-            CircleAvatar(
-              radius: screenSize.width * 0.3,
-              backgroundImage: getImageWidget().image,
-              backgroundColor: themeData.colorScheme.surface,
+            Container(
+              height: screenSize.height * 0.3,
+              decoration: BoxDecoration(
+                image: DecorationImage(image: getImageWidget().image),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.cyan.shade900.withOpacity(0.4),
+                    spreadRadius: 10,
+                    blurRadius: 50,
+                    offset: Offset(0, 0),
+                  ),
+                ],
+              ),
+              // radius: screenSize.width * 0.3,
+              // backgroundImage: getImageWidget().image,
+              // backgroundColor: themeData.colorScheme.surface,
             ),
             SizedBox(height: padding),
             Card(
@@ -132,28 +242,114 @@ class ContactDetailsPage extends StatelessWidget {
                       thickness: 1.7,
                       color: Colors.white,
                     ),
-                    _buildDetailRow(
-                      context,
-                      icon: Icons.email,
-                      detail: contact.email ?? 'No Email',
+                    Column(
+                      children: [
+                        _buildDetailRow(
+                          context,
+                          icon: Icons.email,
+                          detail: contact.email ?? 'No Email',
+                        ),
+                        Row(
+                          children: [
+                            Spacer(),
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                side: BorderSide(
+                                  color: Colors.yellow,
+                                  width: 1,
+                                ),
+                              ),
+                              onPressed: () => _sendEmail(
+                                  context, contact.email?.trim() ?? ''),
+                              child: Text(
+                                'Email',
+                                style: TextStyle(color: Colors.yellow),
+                              ),
+                            ),
+                          ],
+                        )
+                      ],
                     ),
                     Divider(
                       color: Theme.of(context).colorScheme.background,
                       indent: screenSize.width * 0.04,
                     ),
-                    _buildDetailRow(
-                      context,
-                      icon: Icons.phone,
-                      detail: contact.phone ?? 'No Phone',
+                    Column(
+                      children: [
+                        _buildDetailRow(
+                          context,
+                          icon: Icons.phone,
+                          detail: contact.phone ?? 'No Phone',
+                        ),
+                        Row(
+                          children: [
+                            Spacer(),
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                side: BorderSide(
+                                  color: Colors.yellow,
+                                  width: 1,
+                                ),
+                              ),
+                              onPressed: () => _makePhoneCall(
+                                  context, contact.phone?.trim() ?? ''),
+                              child: Text(
+                                'Call',
+                                style: TextStyle(color: Colors.yellow),
+                              ),
+                            ),
+                            SizedBox(
+                                width:
+                                    MediaQuery.of(context).size.width * 0.03),
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                side: BorderSide(
+                                  color: Colors.yellow,
+                                  width: 1,
+                                ),
+                              ),
+                              onPressed: () => _sendSMS(
+                                  context, contact.phone?.trim() ?? ''),
+                              child: Text(
+                                'Message',
+                                style: TextStyle(color: Colors.yellow),
+                              ),
+                            )
+                          ],
+                        )
+                      ],
                     ),
                     Divider(
                       color: Theme.of(context).colorScheme.background,
                       indent: screenSize.width * 0.04,
                     ),
-                    _buildDetailRow(
-                      context,
-                      icon: Icons.location_on,
-                      detail: contact.address ?? 'No Address',
+                    Column(
+                      children: [
+                        _buildDetailRow(
+                          context,
+                          icon: Icons.location_on,
+                          detail: contact.address ?? 'No Address',
+                        ),
+                        Row(
+                          children: [
+                            Spacer(),
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                side: BorderSide(
+                                  color: Colors.yellow,
+                                  width: 1,
+                                ),
+                              ),
+                              onPressed: () => openMapWithAddress(
+                                  context, contact.address?.trim() ?? ''),
+                              child: Text(
+                                'View Map',
+                                style: TextStyle(color: Colors.yellow),
+                              ),
+                            ),
+                          ],
+                        )
+                      ],
                     ),
                   ],
                 ),

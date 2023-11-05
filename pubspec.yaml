@@ -41,6 +41,8 @@ dependencies:
   firebase_storage: ^11.4.1
   cloud_firestore: ^4.12.2
   image_picker: ^1.0.4
+  url_launcher: ^6.1.14
+  maps_launcher: ^2.2.0
 
 dev_dependencies:
   flutter_test:
