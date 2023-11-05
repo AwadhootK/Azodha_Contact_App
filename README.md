@@ -7,6 +7,7 @@ This document serves as a guide and overview for the Azodha Contact App, which h
 The application boasts a suite of features aimed at enhancing the user experience:
 
 - **BLoC State Management**: Ensures a robust flow of data within the app.
+- **Database**: Firestore Cloud Database is used for storage of user data and Firebase Cloud Storage is used for image storage.
 - **Clean Folder Structure**: Organizes UI, Business Logic, and Network Logic effectively.
 - **Error Handling & Validity Checks**: Guarantees data correctness through comprehensive error handling and form validation.
 - **Custom Animations**: Provides smooth, engaging animations.
