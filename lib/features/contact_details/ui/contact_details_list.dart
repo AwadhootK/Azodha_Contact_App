@@ -5,13 +5,35 @@ import 'package:azodha_task/features/contact_details/ui/widgets/contact_list_til
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../contact_form/bloc/form_bloc.dart';
+import '../../contact_form/ui/contact_form.dart';
+
 class ContactDetailsList extends StatelessWidget {
   const ContactDetailsList({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => BlocProvider(
+                    create: (context) => FormBloc(),
+                    child: ContactForm(),
+                  ),
+                ),
+              );
+              context.read<ContactDetailsBloc>().add(
+                    ContactDetailsLoadEvent(),
+                  );
+            },
+            icon: const Icon(Icons.add),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           context.read<ContactDetailsBloc>().add(
