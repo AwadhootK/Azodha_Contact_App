@@ -52,8 +52,10 @@ class FormBloc extends Bloc<FormEvent, FormState> {
     emit(GetImageFromURLState());
   }
 
+
   FutureOr<void> submitForm(SubmitForm event, Emitter<FormState> emit) async {
     emit(FormLoadingState());
+    log('updating form');
     Map<String, dynamic> contactDetails = {
       'documentID': generateRandomId(),
       'name': event.name,
@@ -71,6 +73,7 @@ class FormBloc extends Bloc<FormEvent, FormState> {
       DocumentReference contacts =
           firestore.collection('contacts').doc(contactDetails['documentID']);
       await contacts.set(contactDetails);
+      log('form successfully uploaded');
       emit(FormSubmitSuccess(contactDetails['name']!));
     } catch (e) {
       log(e.toString());
@@ -90,9 +93,7 @@ class FormBloc extends Bloc<FormEvent, FormState> {
       'imageType': event.imageType,
     };
 
-    log(contactDetails.toString());
-
-    log(contactDetails.toString());
+    log('image len = ${event.image.length}');
 
     try {
       if (event.name.isEmpty) {
@@ -101,6 +102,7 @@ class FormBloc extends Bloc<FormEvent, FormState> {
       DocumentReference contacts =
           firestore.collection('contacts').doc(event.documentID);
       await contacts.update(contactDetails);
+      log('form successfully updated');
       emit(FormSubmitSuccess(contactDetails['name']!));
     } catch (e) {
       log(e.toString());

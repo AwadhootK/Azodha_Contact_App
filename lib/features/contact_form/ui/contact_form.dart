@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:azodha_task/features/contact_form/bloc/form_bloc.dart' as fb;
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:azodha_task/models/contact_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,11 +32,34 @@ class _ContactFormState extends State<ContactForm> {
   final _addressController = TextEditingController();
   final _imageController = TextEditingController();
   int _imageType = -1;
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.contact != null && widget.isEditing) {
+      _nameController.text = widget.contact!.name ?? '';
+      _emailController.text = widget.contact!.email ?? '';
+      _phoneController.text = widget.contact!.phone ?? '';
+      _addressController.text = widget.contact!.address ?? '';
+      _imageController.text = widget.contact!.image ?? '';
+      _imageType = widget.contact!.imageType ?? 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _imageController.dispose();
+    super.dispose();
+  }
 
   Future<String?> pickImageAndConvertToBase64(ImageSource source) async {
     final ImagePicker _picker = ImagePicker();
     XFile? image = await _picker.pickImage(source: source);
-
     if (image != null) {
       Uint8List imageBytes = await image.readAsBytes();
       String base64String = base64UrlEncode(imageBytes);
@@ -43,9 +68,33 @@ class _ContactFormState extends State<ContactForm> {
     return null;
   }
 
+  Future<void> uploadPng() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      File file = File(image.path);
+      firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
+          .ref('uploads/${DateTime.now().millisecondsSinceEpoch}.png');
+      firebase_storage.UploadTask uploadTask = ref.putFile(file);
+      try {
+        await uploadTask;
+        final downloadUrl = await ref.getDownloadURL();
+        _imageController.text = downloadUrl;
+        log('Firebase URL: $downloadUrl');
+      } on firebase_storage.FirebaseException catch (e) {
+        print(e.message);
+      }
+    } else {
+      _imageController.text = '';
+      log('No image selected.');
+    }
+  }
+
   Future<void> uploadImage(BuildContext context) async {
-    String? base64Url = await pickImageAndConvertToBase64(
-        _imageType == 0 ? ImageSource.gallery : ImageSource.camera);
+    if (_imageType != 0) {
+      return;
+    }
+    String? base64Url = await pickImageAndConvertToBase64(ImageSource.gallery);
 
     if (base64Url != null) {
       _imageController.text = base64Url;
@@ -59,21 +108,82 @@ class _ContactFormState extends State<ContactForm> {
     }
   }
 
-  void initializeControllers() {
-    if (widget.contact != null && widget.isEditing) {
-      _nameController.text = widget.contact!.name ?? '';
-      _emailController.text = widget.contact!.email ?? '';
-      _phoneController.text = widget.contact!.phone ?? '';
-      _addressController.text = widget.contact!.address ?? '';
-      _imageController.text = widget.contact!.image ?? '';
-      _imageType =
-          _imageType == -1 ? widget.contact!.imageType ?? 0 : _imageType;
+  Image getImageWidget() {
+    if (_imageController.text.isEmpty || isLoading) {
+      return Image.asset('assets/images/placeholder.png');
+    }
+    try {
+      switch (_imageType) {
+        case -1:
+          {
+            return Image.asset(
+              'assets/images/placeholder.png',
+              errorBuilder: (context, _, __) {
+                return Image.asset('assets/images/invalid_placeholder.png');
+              },
+            );
+          }
+        case 0:
+          {
+            // file image
+            Uint8List bytes = base64.decode(_imageController.text);
+            return Image.memory(
+              bytes,
+              errorBuilder: (context, _, __) {
+                return Image.asset(
+                  'assets/images/placeholder.png',
+                  errorBuilder: (context, _, __) {
+                    return Image.asset('assets/images/invalid_placeholder.png');
+                  },
+                );
+              },
+            );
+          }
+        case 1:
+          // camera image
+          {
+            return Image.network(
+              _imageController.text,
+              errorBuilder: (context, _, __) {
+                return Image.asset('assets/images/invalid_placeholder.png');
+              },
+            );
+          }
+        case 2:
+          // network image
+          {
+            return Image.network(
+              _imageController.text,
+              errorBuilder: (context, _, __) {
+                return Image.asset('assets/images/invalid_placeholder.png');
+              },
+            );
+          }
+        default:
+          {
+            return Image.asset(
+              'assets/images/placeholder.png',
+              errorBuilder: (context, _, __) {
+                return Image.asset('assets/images/invalid_placeholder.png');
+              },
+            );
+          }
+      }
+    } catch (e) {
+      return Image.asset(
+        'assets/images/placeholder.png',
+        errorBuilder: (context, _, __) {
+          return Image.asset('assets/images/invalid_placeholder.png');
+        },
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    log('_imageType = $_imageType');
+    final h = MediaQuery.of(context).size.height;
+    final w = MediaQuery.of(context).size.width;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.isEditing ? 'Edit' : ''} Contact Form'),
@@ -108,7 +218,6 @@ class _ContactFormState extends State<ContactForm> {
             );
           }
 
-          initializeControllers();
           return Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -184,11 +293,12 @@ class _ContactFormState extends State<ContactForm> {
                               : Colors.lightBlue.shade100,
                           side: const BorderSide(color: Colors.black),
                         ),
-                        onPressed: () {
+                        onPressed: () async {
                           setState(() {
                             _imageType = 0;
-                            _imageController.text = '';
+                            _imageController.clear();
                           });
+                          await uploadImage(context);
                           context.read<fb.FormBloc>().add(fb.ImageFromFile());
                         },
                         child: const Text('Gallery'),
@@ -200,10 +310,16 @@ class _ContactFormState extends State<ContactForm> {
                               : Colors.lightBlue.shade100,
                           side: const BorderSide(color: Colors.black),
                         ),
-                        onPressed: () {
+                        onPressed: () async {
                           setState(() {
-                            _imageController.clear();
                             _imageType = 1;
+                            _imageController.text =
+                                'assets/images/placeholder.png';
+                            isLoading = true;
+                          });
+                          await uploadPng();
+                          setState(() {
+                            isLoading = false;
                           });
                           context.read<fb.FormBloc>().add(fb.ImageFromCamera());
                         },
@@ -229,10 +345,14 @@ class _ContactFormState extends State<ContactForm> {
                   ),
                   if (state is! fb.GetImageFromCameraState &&
                       state is! fb.GetImageFromFileState &&
-                      _imageType != -1)
+                      (state is fb.GetImageFromURLState ||
+                          _imageType == 2 && state is fb.FormInitial))
                     TextFormField(
                       controller: _imageController,
                       textInputAction: TextInputAction.done,
+                      onEditingComplete: () {
+                        setState(() {});
+                      },
                       decoration: const InputDecoration(labelText: 'Image URL'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -241,6 +361,17 @@ class _ContactFormState extends State<ContactForm> {
                         return null;
                       },
                     ),
+                  AnimatedContainer(
+                    padding: EdgeInsets.all(h * 0.02),
+                    height: _imageController.text.isEmpty || _imageType == -1
+                        ? 0
+                        : h * 0.4,
+                    width: _imageController.text.isEmpty || _imageType == -1
+                        ? 0
+                        : w * 0.4,
+                    duration: const Duration(milliseconds: 250),
+                    child: getImageWidget(),
+                  ),
                   ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
@@ -254,20 +385,23 @@ class _ContactFormState extends State<ContactForm> {
                                 imageType: _imageType,
                               ));
                         } else {
-                          context.read<fb.FormBloc>().add(fb.FormUpdate(
-                                documentID: widget.contact!.documentID ?? '',
-                                name: _nameController.text,
-                                email: _emailController.text,
-                                phone: _phoneController.text,
-                                address: _addressController.text,
-                                image: _imageController.text,
-                                imageType: _imageType,
-                              ));
+                          context.read<fb.FormBloc>().add(
+                                fb.FormUpdate(
+                                  documentID: widget.contact!.documentID ?? '',
+                                  name: _nameController.text,
+                                  email: _emailController.text,
+                                  phone: _phoneController.text,
+                                  address: _addressController.text,
+                                  image: _imageController.text,
+                                  imageType: _imageType,
+                                ),
+                              );
                         }
                       }
                     },
                     child: const Text('Submit'),
                   ),
+                  SizedBox(height: h * 0.1),
                 ],
               ),
             ),
@@ -275,15 +409,5 @@ class _ContactFormState extends State<ContactForm> {
         },
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _addressController.dispose();
-    _imageController.dispose();
-    super.dispose();
   }
 }

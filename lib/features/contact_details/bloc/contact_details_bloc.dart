@@ -27,6 +27,7 @@ class ContactDetailsBloc
       for (var element in data.docs) {
         contacts.add(Contact.fromJson(element.data()));
       }
+      log('documents successfully loaded');
       emit(ContactDetailsLoadState(contacts));
     } catch (e) {
       emit(ContactDetailsErrorState(e.toString()));
@@ -38,6 +39,7 @@ class ContactDetailsBloc
     try {
       emit(ContactDetailsLoadingState());
       await firestore.collection('contacts').doc(event.documentID).delete();
+      log('document successfully deleted');
       emit(ContactDeleteSuccessState(event.documentID));
     } catch (e) {
       emit(ContactDetailsErrorState(e.toString()));

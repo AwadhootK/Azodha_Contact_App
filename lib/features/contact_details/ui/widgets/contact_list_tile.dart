@@ -20,30 +20,60 @@ class ContactDetailsListTile extends StatelessWidget {
 
   Image getImageWidget(int index) {
     if (contacts[index].image == null || contacts[index].image!.isEmpty) {
-      return Image.asset('assets/images/placeholder.png');
+      return Image.asset(
+        'assets/images/placeholder.png',
+        errorBuilder: (context, _, __) {
+          return Image.asset('assets/images/invalid_placeholder.png');
+        },
+      );
     }
-    switch (contacts[index].imageType) {
-      case 0:
-        {
-          // file image
-          Uint8List bytes = base64.decode(contacts[index].image ?? '');
-          return Image.memory(bytes);
-        }
-      case 1:
-        // camera image
-        {
-          Uint8List bytes = base64.decode(contacts[index].image ?? '');
-          return Image.memory(bytes);
-        }
-      case 2:
-        // network image
-        {
-          return Image.network(contacts[index].image ?? '');
-        }
-      default:
-        {
-          return Image.asset('assets/images/placeholder.png');
-        }
+    try {
+      switch (contacts[index].imageType) {
+        case 0:
+          {
+            // file image
+            Uint8List bytes = base64.decode(contacts[index].image ?? '');
+            return Image.memory(
+              bytes,
+              errorBuilder: (context, _, __) {
+                return Image.asset('assets/images/invalid_placeholder.png');
+              },
+            );
+          }
+        case 1:
+          // camera image
+          {
+            return Image.network(
+              contacts[index].image ?? '',
+              errorBuilder: (context, _, __) {
+                return Image.asset('assets/images/invalid_placeholder.png');
+              },
+            );
+          }
+        case 2:
+          // network image
+          {
+            return Image.network(
+              contacts[index].image ?? '',
+              errorBuilder: (context, _, __) {
+                return Image.asset('assets/images/invalid_placeholder.png');
+              },
+            );
+          }
+        default:
+          {
+            return Image.asset(
+              'assets/images/placeholder.png',
+              errorBuilder: (context, _, __) {
+                return Image.asset('assets/images/invalid_placeholder.png');
+              },
+            );
+          }
+      }
+    } catch (e) {
+      return Image.asset(
+        'assets/images/invalid_placeholder.png',
+      );
     }
   }
 
@@ -71,9 +101,15 @@ class ContactDetailsListTile extends StatelessWidget {
               child: Column(
                 children: [
                   ListTile(
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(500),
-                      child: getImageWidget(index),
+                    leading: Container(
+                      height: h * 0.1,
+                      width: h * 0.07,
+                      decoration: BoxDecoration(
+                        color: Colors.blue[900],
+                        image:
+                            DecorationImage(image: getImageWidget(index).image),
+                        shape: BoxShape.circle,
+                      ),
                     ),
                     title: SizedBox(
                       width: w * 0.7,
@@ -134,7 +170,7 @@ class ContactDetailsListTile extends StatelessWidget {
                               contacts[index].name!.isNotEmpty) {
                             contactDetailsBloc.add(
                               ContactDetailsDelete(
-                                  contacts[index].name ?? 'No Name'),
+                                  contacts[index].documentID ?? 'No Name'),
                             );
                           } else {
                             // Invalid Document ID - do error handling
