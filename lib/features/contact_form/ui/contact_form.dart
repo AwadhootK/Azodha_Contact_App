@@ -500,7 +500,7 @@ class _ContactFormState extends State<ContactForm> {
                       ),
                       child: Center(
                         child: Text(
-                          'Submit',
+                          widget.isEditing ? 'Save' : 'Submit',
                           style: TextStyle(
                             color: Colors.cyan.shade50,
                             fontWeight: FontWeight.bold,
