@@ -185,6 +185,14 @@ class ContactDetailsList extends StatelessWidget {
             return const Center(
               child: CircularProgressIndicator(),
             );
+          } else if (state is NavigateToContactDetailsState) {
+            return Container();
+          } else if (state is ContactDetailsUpdateState) {
+            return Container();
+          } else if (state is ContactDetailsDeleteState) {
+            return Container();
+          } else if (state is ContactDeleteSuccessState) {
+            return Container();
           } else {
             return const Center(
               child: Text('Something went wrong'),
