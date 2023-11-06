@@ -194,6 +194,32 @@ class _ContactFormState extends State<ContactForm> {
           );
         },
       );
+    } else if (state is fb.GetImageFromURLState) {
+      return Image.network(
+        _imageController.text,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          if (loadingProgress.cumulativeBytesLoaded <
+              loadingProgress.expectedTotalBytes!) {
+            return Padding(
+              padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.17),
+              child: Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!,
+                ),
+              ),
+            );
+          } else {
+            return child;
+          }
+        },
+        errorBuilder: (context, _, __) {
+          return Image.asset(
+            'assets/images/invalid_placeholder.png',
+          );
+        },
+      );
     } else {
       return Image.asset(
         'assets/images/placeholder.png',
@@ -393,7 +419,7 @@ class _ContactFormState extends State<ContactForm> {
                           log("value of image type = $_imageType");
                           setState(() {
                             _imageType = 2;
-                            _imageController.clear();
+                            // _imageController.clear();
                           });
                           context.read<fb.FormBloc>().add(fb.ImageFromURL());
                         },
@@ -417,6 +443,7 @@ class _ContactFormState extends State<ContactForm> {
                       prefixIcon: Icons.image,
                       textInputAction: TextInputAction.done,
                       onEditingComplete: () {
+                        log('image url = ${_imageController.text}');
                         context
                             .read<fb.FormBloc>()
                             .add(fb.ImageFromURLLoaded(_imageController.text));
