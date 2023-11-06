@@ -1,34 +1,34 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io'; 
 import 'dart:math' as math;
-import 'dart:developer';
-import 'dart:typed_data';
-
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'dart:developer'; 
+import 'dart:typed_data'; 
+import 'package:firebase_storage/firebase_storage.dart'
+    as firebase_storage; 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:azodha_task/models/contact_model.dart';
-import 'package:bloc/bloc.dart';
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:meta/meta.dart';
-import 'package:http/http.dart' as http;
+import 'package:bloc/bloc.dart'; 
+import 'package:image_picker/image_picker.dart'; 
+import 'package:meta/meta.dart'; 
 
-part 'form_event.dart';
-part 'form_state.dart';
+part 'form_event.dart'; 
+part 'form_state.dart'; 
 
+// Class definition for the FormBloc
 class FormBloc extends Bloc<FormEvent, FormState> {
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance; // Instance of Firebase Cloud Firestore
 
+  // Constructor for the FormBloc class
   FormBloc() : super(FormInitial()) {
-    on<ImageFromFile>(getImageFromFileState);
-    on<ImageFromCamera>(getImageFromCameraState);
-    on<ImageFromURL>(getImageFromURLState);
+    // Defining event handlers for different events
+    on<ImageFromFile>(getImageFromFileState); // Handler for getting image from file
+    on<ImageFromCamera>(getImageFromCameraState); // Handler for getting image from camera
+    on<ImageFromURL>(getImageFromURLState); // Handler for getting image from URL
     on<ResetImage>(
       (event, emit) => emit(FormInitial()),
     );
-    on<SubmitForm>(submitForm);
-    on<FormUpdate>(updateForm);
+    on<SubmitForm>(submitForm); // Handler for submitting the form
+    on<FormUpdate>(updateForm); // Handler for updating the form
     on<ImageFromURLLoaded>(
       (event, emit) => emit(
         ImageURLLoadedState(event.imageURL),
@@ -43,6 +43,7 @@ class FormBloc extends Bloc<FormEvent, FormState> {
         ));
   }
 
+  // Method for generating a random ID
   String generateRandomId() {
     var random = math.Random();
     var id = random.nextInt(1 << 32).toRadixString(16);
@@ -50,6 +51,7 @@ class FormBloc extends Bloc<FormEvent, FormState> {
     return '$timestamp-$id';
   }
 
+  // Event handler for getting image from file
   FutureOr<void> getImageFromFileState(
       ImageFromFile event, Emitter<FormState> emit) async {
     log('getting image from file');
@@ -65,6 +67,7 @@ class FormBloc extends Bloc<FormEvent, FormState> {
     emit(GetImageFromFileState(base64String));
   }
 
+  // Event handler for getting image from camera
   FutureOr<void> getImageFromCameraState(
       ImageFromCamera event, Emitter<FormState> emit) async {
     log('getting image from camera');
@@ -91,12 +94,14 @@ class FormBloc extends Bloc<FormEvent, FormState> {
     emit(GetImageFromCameraState(downloadUrl));
   }
 
+  // Event handler for getting image from URL
   FutureOr<void> getImageFromURLState(
       ImageFromURL event, Emitter<FormState> emit) {
     log('getting image from URL');
     emit(GetImageFromURLState());
   }
 
+  // Event handler for submitting the form
   FutureOr<void> submitForm(SubmitForm event, Emitter<FormState> emit) async {
     emit(FormLoadingState());
     log('submitting form');
@@ -125,6 +130,7 @@ class FormBloc extends Bloc<FormEvent, FormState> {
     }
   }
 
+  // Event handler for updating the form
   FutureOr<void> updateForm(FormUpdate event, Emitter<FormState> emit) async {
     emit(FormLoadingState());
     Map<String, dynamic> contactDetails = {

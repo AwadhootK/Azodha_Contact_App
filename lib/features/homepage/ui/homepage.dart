@@ -9,36 +9,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../contact_details/ui/contact_details_list.dart';
 import '../../contact_form/ui/contact_form.dart';
 
+// This is the home page of the app
 class ContactHomePage extends StatelessWidget {
   const ContactHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
-    final Decoration customDecoration = BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          Colors.black.withOpacity(0.6),
-          Colors.black.withOpacity(0.4),
-          Colors.black.withOpacity(0.4),
-        ],
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-      ),
-      borderRadius: BorderRadius.circular(24),
-      border: Border.all(
-        color: Theme.of(context).colorScheme.scrim,
-        width: 0.7,
-      ),
-      boxShadow: [
-        BoxShadow(
-          blurRadius: 1.0,
-          spreadRadius: 2.0,
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-        ),
-      ],
-    );
-
+    
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
