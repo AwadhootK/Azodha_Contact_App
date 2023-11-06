@@ -1,6 +1,28 @@
 # Azodha Contact App Assignment
 
-This document serves as a guide and overview for the Azodha Contact App, which has been developed as part of an internship assignment.
+This document is a guide and overview for the Azodha Contact App, which has been developed as part of an internship assignment.
+
+
+## Run Commands
+
+- To run this project execute the following in the root directory of the terminal **(debug version)**
+```bash
+    flutter run --debug
+```
+
+- To run this project execute the following in the root directory of the terminal **(release version)**
+```bash
+    flutter run --release
+```
+
+- To build APK file run the following in the root directory of the terminal:
+
+```bash
+    flutter build apk -- release
+```
+
+- **Note:** This app has only been optimized for **Android OS**.
+
 
 ## Features and Implementation
 
@@ -64,6 +86,10 @@ These pages showcase the contact information with interactive elements:
 4. **Contact Details Page**:
    
    ![Contact Details](https://github.com/AwadhootK/Azodha_Contact_App/assets/100119619/4149e6ee-07dc-45fc-80cc-a72a9c98c637)
+
+5. **App Logo**:
+
+   ![logo](https://github.com/AwadhootK/Azodha_Contact_App/assets/100119619/a0f654de-7532-4b1a-a5f4-c27995aa18c4)
 
    
 
