@@ -172,7 +172,7 @@ class ContactDetailsList extends StatelessWidget {
               padding: EdgeInsets.only(
                 bottom: h * 0.08,
               ),
-              child: ContactDetailsListTile(
+              child: ContactDetailsListView(
                 contacts: state.contacts,
                 contactDetailsBloc: context.read<ContactDetailsBloc>(),
               ),

@@ -11,21 +11,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ContactDetailsListTile extends StatefulWidget {
+class ContactDetailsListView extends StatefulWidget {
   final ContactDetailsBloc contactDetailsBloc;
   final List<Contact> contacts;
 
-  ContactDetailsListTile({
+  ContactDetailsListView({
     required this.contacts,
     required this.contactDetailsBloc,
     super.key,
   });
 
   @override
-  State<ContactDetailsListTile> createState() => _ContactDetailsListTileState();
+  State<ContactDetailsListView> createState() => _ContactDetailsListViewState();
 }
 
-class _ContactDetailsListTileState extends State<ContactDetailsListTile> {
+class _ContactDetailsListViewState extends State<ContactDetailsListView> {
   final cacheManager = CacheManager(Config(
     'my_custom_cache_key',
     stalePeriod: const Duration(days: 7),
@@ -126,6 +126,9 @@ class _ContactDetailsListTileState extends State<ContactDetailsListTile> {
 
     // animate to previously visited index
     Future.delayed(Duration.zero, () {
+      if (prevIndex >= widget.contacts.length) {
+        prevIndex = 0;
+      }
       _controller.animateToItem(
         prevIndex,
         duration: const Duration(milliseconds: 1200),
