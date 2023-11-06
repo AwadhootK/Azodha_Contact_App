@@ -4,8 +4,8 @@ import 'dart:developer';
 import 'package:azodha_task/models/contact_model.dart';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:http/http.dart';
 import 'package:meta/meta.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'contact_details_event.dart';
 part 'contact_details_state.dart';
@@ -21,6 +21,7 @@ class ContactDetailsBloc
         NavigateToContactDetailsState(event.contact),
       ),
     );
+    on<SaveIndexToLocalStorage>(saveIndexToLocalStorage);
   }
 
   FutureOr<void> loadContactDetails(
@@ -49,5 +50,11 @@ class ContactDetailsBloc
     } catch (e) {
       emit(ContactDetailsErrorState('Something went wrong...'));
     }
+  }
+
+  FutureOr<void> saveIndexToLocalStorage(
+      SaveIndexToLocalStorage event, Emitter<ContactDetailsState> emit) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.setInt('index', event.index);
   }
 }

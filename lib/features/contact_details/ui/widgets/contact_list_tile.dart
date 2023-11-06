@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:typed_data';
 import 'package:azodha_task/features/contact_details/bloc/contact_details_bloc.dart';
 import 'package:azodha_task/features/contact_form/bloc/form_bloc.dart';
@@ -8,8 +9,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class ContactDetailsListTile extends StatelessWidget {
+class ContactDetailsListTile extends StatefulWidget {
   final ContactDetailsBloc contactDetailsBloc;
   final List<Contact> contacts;
 
@@ -19,14 +21,35 @@ class ContactDetailsListTile extends StatelessWidget {
     super.key,
   });
 
+  @override
+  State<ContactDetailsListTile> createState() => _ContactDetailsListTileState();
+}
+
+class _ContactDetailsListTileState extends State<ContactDetailsListTile> {
   final cacheManager = CacheManager(Config(
     'my_custom_cache_key',
     stalePeriod: const Duration(days: 7),
     maxNrOfCacheObjects: 100,
   ));
 
+  final FixedExtentScrollController _controller = FixedExtentScrollController();
+  int prevIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    updateController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   Image getImageWidget(int index) {
-    if (contacts[index].image == null || contacts[index].image!.isEmpty) {
+    if (widget.contacts[index].image == null ||
+        widget.contacts[index].image!.isEmpty) {
       return Image.asset(
         'assets/images/placeholder.png',
         errorBuilder: (context, _, __) {
@@ -35,11 +58,11 @@ class ContactDetailsListTile extends StatelessWidget {
       );
     }
     try {
-      switch (contacts[index].imageType) {
+      switch (widget.contacts[index].imageType) {
         case 0:
           {
             // file image
-            Uint8List bytes = base64.decode(contacts[index].image ?? '');
+            Uint8List bytes = base64.decode(widget.contacts[index].image ?? '');
             return Image.memory(
               bytes,
               errorBuilder: (context, _, __) {
@@ -84,19 +107,44 @@ class ContactDetailsListTile extends StatelessWidget {
     }
   }
 
+  // update prevIndex value to the value stored in shared preference
+  void updateController() async {
+    prevIndex = await readIndexFromLocalStorage();
+  }
+
+  // read value of previously visited index from shared preference
+  Future<int> readIndexFromLocalStorage() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    int index = sharedPreferences.getInt('index') ?? 0;
+    return index;
+  }
+
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
     final w = MediaQuery.of(context).size.width;
 
+    // animate to previously visited index
+    Future.delayed(Duration.zero, () {
+      _controller.animateToItem(
+        prevIndex,
+        duration: const Duration(milliseconds: 1200),
+        curve: Curves.easeInOut,
+      );
+    });
+
     return ListWheelScrollView.useDelegate(
+      controller: _controller,
       physics: FixedExtentScrollPhysics(),
       itemExtent: h * 0.35,
       perspective: 0.004,
       squeeze: 0.9,
       diameterRatio: 1.7,
+      onSelectedItemChanged: (index) {
+        widget.contactDetailsBloc.add(SaveIndexToLocalStorage(index));
+      },
       childDelegate: ListWheelChildBuilderDelegate(
-        childCount: contacts.length,
+        childCount: widget.contacts.length,
         builder: (context, index) {
           return Card(
             color:
@@ -157,7 +205,7 @@ class ContactDetailsListTile extends StatelessWidget {
                             color: Colors.white60,
                             width: 0.75,
                           ),
-                          image: contacts[index].imageType == 0
+                          image: widget.contacts[index].imageType == 0
                               ? DecorationImage(
                                   image: getImageWidget(index).image)
                               : null,
@@ -171,10 +219,10 @@ class ContactDetailsListTile extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: contacts[index].imageType != 0
+                        child: widget.contacts[index].imageType != 0
                             ? ClipOval(
                                 child: CachedNetworkImage(
-                                  imageUrl: contacts[index].image ?? '',
+                                  imageUrl: widget.contacts[index].image ?? '',
                                   placeholder: (context, url) {
                                     return Image.asset(
                                         'assets/images/placeholder.png');
@@ -208,7 +256,8 @@ class ContactDetailsListTile extends StatelessWidget {
                           child: FittedBox(
                             fit: BoxFit.contain,
                             child: Text(
-                              (contacts[index].name ?? 'No Name').padRight(25),
+                              (widget.contacts[index].name ?? 'No Name')
+                                  .padRight(25),
                               style: TextStyle(
                                 color: Colors.cyan.shade900,
                                 fontWeight: FontWeight.bold,
@@ -237,7 +286,7 @@ class ContactDetailsListTile extends StatelessWidget {
                                   width: w * 0.02,
                                 ),
                                 Text(
-                                  contacts[index].phone ?? 'No Phone',
+                                  widget.contacts[index].phone ?? 'No Phone',
                                   style: TextStyle(
                                     color: Colors.white,
                                   ),
@@ -266,7 +315,8 @@ class ContactDetailsListTile extends StatelessWidget {
                                       width: w * 0.02,
                                     ),
                                     Text(
-                                      (contacts[index].email ?? 'No Email')
+                                      (widget.contacts[index].email ??
+                                              'No Email')
                                           .padRight(25),
                                       style: TextStyle(
                                         color: Colors.white,
@@ -303,8 +353,8 @@ class ContactDetailsListTile extends StatelessWidget {
                             color: Theme.of(context).colorScheme.background,
                           ),
                           onPressed: () {
-                            contactDetailsBloc.add(
-                              NavigateToContactDetails(contacts[index]),
+                            widget.contactDetailsBloc.add(
+                              NavigateToContactDetails(widget.contacts[index]),
                             );
                           },
                         ),
@@ -333,14 +383,14 @@ class ContactDetailsListTile extends StatelessWidget {
                                   create: (context) => FormBloc(),
                                   child: ContactForm(
                                     isEditing: true,
-                                    contact: contacts[index],
+                                    contact: widget.contacts[index],
                                   ),
                                 ),
                               ),
                             )
                                 .then((value) {
                               if (value != null && value) {
-                                contactDetailsBloc
+                                widget.contactDetailsBloc
                                     .add(ContactDetailsLoadEvent());
                               }
                             });
@@ -365,11 +415,12 @@ class ContactDetailsListTile extends StatelessWidget {
                           ),
                           onPressed: () {
                             // Confirm deletion dialog or directly delete
-                            if (contacts[index].name != null &&
-                                contacts[index].name!.isNotEmpty) {
-                              contactDetailsBloc.add(
+                            if (widget.contacts[index].name != null &&
+                                widget.contacts[index].name!.isNotEmpty) {
+                              widget.contactDetailsBloc.add(
                                 ContactDetailsDelete(
-                                    contacts[index].documentID ?? 'No Name'),
+                                    widget.contacts[index].documentID ??
+                                        'No Name'),
                               );
                             } else {
                               // Invalid Document ID - do error handling

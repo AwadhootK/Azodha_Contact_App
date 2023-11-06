@@ -24,3 +24,9 @@ class ContactDetailsDelete extends ContactDetailsEvent {
 
   ContactDetailsDelete(this.documentID);
 }
+
+class SaveIndexToLocalStorage extends ContactDetailsEvent {
+  final int index;
+
+  SaveIndexToLocalStorage(this.index);
+}
